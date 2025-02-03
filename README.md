@@ -1,2 +1,2 @@
 # aaran-shoppy
-The ultimate solution for business
+The ultimate solution for shopping
