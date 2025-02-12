@@ -3,39 +3,47 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
-use App\Scopes\TenantScope;
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Laravel\Fortify\TwoFactorAuthenticatable;
-use Laravel\Jetstream\HasProfilePhoto;
-use Laravel\Sanctum\HasApiTokens;
+use App\Models\Order;
 
-class User extends Authenticatable
+class User extends Authenticatable implements FilamentUser
 {
-    use HasApiTokens;
-    use HasFactory;
-    use HasProfilePhoto;
-    use Notifiable;
-    use TwoFactorAuthenticatable;
+    /** @use HasFactory<\Database\Factories\UserFactory> */
+    use HasFactory, Notifiable;
 
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var list<string>
+     */
     protected $fillable = [
         'name',
         'email',
+        'email_verified_at',
         'password',
     ];
 
+    /**
+     * The attributes that should be hidden for serialization.
+     *
+     * @var list<string>
+     */
     protected $hidden = [
         'password',
         'remember_token',
-        'two_factor_recovery_codes',
-        'two_factor_secret',
     ];
 
-    protected $appends = [
-        'profile_photo_url',
-    ];
-
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
     protected function casts(): array
     {
         return [
@@ -44,33 +52,12 @@ class User extends Authenticatable
         ];
     }
 
-    public function isSundar(): bool
-    {
-        return in_array($this->email, [
-            'sundar@sundar.com',
-            'sundar@codexsun.com',
-        ]);
+    public function orders(){
+        return $this->hasMany(Order::class);
     }
 
-
-    public function isAdmin(): bool
+    public function canAccessPanel(Panel $panel): bool
     {
-        return in_array($this->email, [
-            'sundar@sundar.com',
-            'sundar@codexsun.com',
-            'developer@aaran.com',
-        ]);
-    }
-
-    public static function getName($id)
-    {
-        if($id){
-            return self::find($id)->name;
-        }
-    }
-
-    protected static function booted(): void
-    {
-        static::addGlobalScope(new TenantScope);
+        return $this->email == 'admin2@gmail.com';
     }
 }
